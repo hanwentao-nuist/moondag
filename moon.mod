@@ -13,14 +13,18 @@ name = "Han-Wentao/moondag"
 
 version = "0.1.0"
 
-readme = "README.mbt.md"
+readme = "README.md"
 
 repository = ""
 
 license = "Apache-2.0"
 
-keywords = []
+keywords = [ "dag", "dependency-graph", "workflow", "critical-path" ]
 
 preferred_target = "wasm-gc"
 
-description = ""
+description = "Deterministic DAG validation and task pipeline analysis for MoonBit"
+
+import {
+  "moonbitlang/x@0.4.49",
+}

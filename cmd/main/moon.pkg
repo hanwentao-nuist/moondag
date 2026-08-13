@@ -1,7 +1,7 @@
-// import {
-//   "Han-Wentao/moondag" @lib,
-// }
+import {
+  "Han-Wentao/moondag" @lib,
+  "moonbitlang/core/env",
+  "moonbitlang/x/sys",
+}
 
-options(
-  "is-main": true,
-)
+pkgtype(kind: "executable")

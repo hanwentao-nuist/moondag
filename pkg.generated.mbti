@@ -1,0 +1,105 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Han-Wentao/moondag"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn compile_graph(String) -> Result[Dag, Diagnostic]
+
+pub fn demo_graph() -> String
+
+pub fn execute(Array[String]) -> CommandResult
+
+pub let help_text : String
+
+// Errors
+
+// Types and methods
+pub struct Analysis {
+  order : Array[String]
+  layers : Array[Array[String]]
+  critical_path : CriticalPath
+} derive(Eq, @debug.Debug)
+pub fn Analysis::critical_path(Self) -> CriticalPath
+pub fn Analysis::layers(Self) -> Array[Array[String]]
+pub fn Analysis::order(Self) -> Array[String]
+pub fn Analysis::to_text(Self) -> String
+
+pub struct CommandResult {
+  exit_code : Int
+  output : String
+} derive(Eq, @debug.Debug)
+pub fn CommandResult::exit_code(Self) -> Int
+pub fn CommandResult::output(Self) -> String
+
+pub struct CriticalPath {
+  task_ids : Array[String]
+  duration : Int
+} derive(Eq, @debug.Debug)
+pub fn CriticalPath::duration(Self) -> Int
+pub fn CriticalPath::task_ids(Self) -> Array[String]
+
+pub struct Dag {
+  nodes : Array[TaskNode]
+} derive(Eq, @debug.Debug)
+pub fn Dag::analyze(Self) -> Analysis
+pub fn Dag::blockers(Self, String) -> Result[Array[String], Diagnostic]
+pub fn Dag::critical_path(Self) -> CriticalPath
+pub fn Dag::downstream(Self, Array[String]) -> Result[Array[String], Diagnostic]
+pub fn Dag::is_empty(Self) -> Bool
+pub fn Dag::layers(Self) -> Array[Array[String]]
+pub fn Dag::len(Self) -> Int
+pub fn Dag::nodes(Self) -> Array[TaskNode]
+pub fn Dag::summary_text(Self) -> String
+pub fn Dag::topological_order(Self) -> Array[String]
+
+pub struct Diagnostic {
+  code : String
+  field : String
+  message : String
+  expected : String
+  actual : String
+} derive(Eq, @debug.Debug)
+pub fn Diagnostic::actual(Self) -> String
+pub fn Diagnostic::code(Self) -> String
+pub fn Diagnostic::expected(Self) -> String
+pub fn Diagnostic::field(Self) -> String
+pub fn Diagnostic::message(Self) -> String
+pub fn Diagnostic::new(String, String, String, String, String) -> Self
+pub fn Diagnostic::to_text(Self) -> String
+
+pub struct GraphSpec {
+  tasks : Array[TaskSpec]
+} derive(Eq, @debug.Debug)
+pub fn GraphSpec::compile(Self) -> Result[Dag, Diagnostic]
+pub fn GraphSpec::make(Array[TaskSpec]) -> Self
+pub fn GraphSpec::parse(String) -> Result[Self, Diagnostic]
+pub fn GraphSpec::tasks(Self) -> Array[TaskSpec]
+pub fn GraphSpec::to_text(Self) -> String
+
+pub struct TaskNode {
+  id : String
+  duration : Int
+  deps : Array[Int]
+  dependents : Array[Int]
+  label : String
+} derive(Eq, @debug.Debug)
+
+pub struct TaskSpec {
+  id : String
+  duration : Int
+  deps : Array[String]
+  label : String
+} derive(Eq, @debug.Debug)
+pub fn TaskSpec::deps(Self) -> Array[String]
+pub fn TaskSpec::duration(Self) -> Int
+pub fn TaskSpec::id(Self) -> String
+pub fn TaskSpec::label(Self) -> String
+pub fn TaskSpec::make(String, duration? : Int, deps? : Array[String], label? : String) -> Self
+
+// Type aliases
+
+// Traits
+
