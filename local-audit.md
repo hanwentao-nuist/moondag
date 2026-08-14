@@ -34,6 +34,10 @@ content-defined chunking.
   Actions Ubuntu runner
 - Native CLI build and example comparison: blocked locally for the same C
   compiler reason; configured for GitHub Actions Ubuntu runner
+- GitHub Actions CI: passed on 2026-08-14 for commit
+  `453ad0b29c92953a18820cc6179523c3fc160920`
+  (`Portable checks`, `Native checks and CLI`)
+- CI run: https://github.com/hanwentao-nuist/moondag/actions/runs/31769506467
 
 ## Deliverables
 
