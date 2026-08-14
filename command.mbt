@@ -37,6 +37,11 @@ pub let help_text =
   #|  moondag block   --graph TEXT --target ID
   #|  moondag schedule --graph TEXT
   #|  moondag dot      --graph TEXT
+  #|  moondag stats    --graph TEXT
+  #|  moondag task     --graph TEXT --target ID
+  #|  moondag plan     --graph TEXT --changed ID[,ID]
+  #|  moondag mermaid  --graph TEXT
+  #|  moondag csv      --graph TEXT
   #|  moondag demo
   #|
   #|GRAPH: lines use id | duration | dep-a,dep-b | optional label. Use \n escapes in CLI text.
@@ -212,6 +217,62 @@ fn dot_command(args : Array[String]) -> CommandResult {
 }
 
 ///|
+fn stats_command(args : Array[String]) -> CommandResult {
+  match graph_option(args) {
+    Ok(dag) => command_ok(dag.stats().to_text())
+    Err(error) => error
+  }
+}
+
+///|
+fn task_command(args : Array[String]) -> CommandResult {
+  let dag = match graph_option(args) {
+    Ok(value) => value
+    Err(error) => return error
+  }
+  let target = match option(args, "--target") {
+    Ok(value) => value
+    Err(error) => return error
+  }
+  match dag.task_info(target) {
+    Ok(info) => command_ok(info.to_text())
+    Err(error) => command_fail(error.to_text())
+  }
+}
+
+///|
+fn plan_command(args : Array[String]) -> CommandResult {
+  let dag = match graph_option(args) {
+    Ok(value) => value
+    Err(error) => return error
+  }
+  let changed = match ids_option(args, "--changed") {
+    Ok(value) => value
+    Err(error) => return error
+  }
+  match dag.impact_plan(changed) {
+    Ok(plan) => command_ok(plan.to_text())
+    Err(error) => command_fail(error.to_text())
+  }
+}
+
+///|
+fn mermaid_command(args : Array[String]) -> CommandResult {
+  match graph_option(args) {
+    Ok(dag) => command_ok(dag.to_mermaid())
+    Err(error) => error
+  }
+}
+
+///|
+fn csv_command(args : Array[String]) -> CommandResult {
+  match graph_option(args) {
+    Ok(dag) => command_ok(dag.schedule().to_csv())
+    Err(error) => error
+  }
+}
+
+///|
 pub fn demo_graph() -> String {
   (
     #|fetch | 2 | - | fetch sources
@@ -228,12 +289,17 @@ fn demo_command() -> CommandResult {
   let dag = compile_graph(demo_graph()).unwrap()
   let impact = dag.downstream(["schema"]).unwrap()
   let blockers = dag.blockers("package").unwrap()
+  let plan = dag.impact_plan(["schema"]).unwrap()
   command_ok(
     dag.summary_text() +
+    "\n" +
+    dag.stats().to_text() +
     "\nIMPACT schema: " +
     join_strings(impact, " ") +
     "\nBLOCK package: " +
     join_strings(blockers, " ") +
+    "\nAFFECTED duration=" +
+    plan.affected_duration().to_string() +
     "\n" +
     dag.schedule().to_text(),
   )
@@ -253,6 +319,11 @@ pub fn execute(args : Array[String]) -> CommandResult {
     "block" => block_command(args)
     "schedule" => schedule_command(args)
     "dot" => dot_command(args)
+    "stats" => stats_command(args)
+    "task" => task_command(args)
+    "plan" => plan_command(args)
+    "mermaid" => mermaid_command(args)
+    "csv" => csv_command(args)
     "demo" => demo_command()
     other => command_fail("unknown command: " + other + "\n\n" + help_text)
   }

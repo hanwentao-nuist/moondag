@@ -39,6 +39,47 @@ pub struct Analysis {
 } derive(Eq, @debug.Debug)
 
 ///|
+pub struct GraphStats {
+  tasks : Int
+  edges : Int
+  roots : Int
+  leaves : Int
+  total_duration : Int
+  critical_duration : Int
+  max_fan_in : Int
+  max_fan_out : Int
+  layer_count : Int
+  parallelism_hint : Int
+} derive(Eq, @debug.Debug)
+
+///|
+pub struct TaskInfo {
+  id : String
+  duration : Int
+  label : String
+  dependencies : Array[String]
+  dependents : Array[String]
+  blockers : Array[String]
+  downstream : Array[String]
+  earliest_start : Int
+  earliest_finish : Int
+  latest_start : Int
+  latest_finish : Int
+  slack : Int
+  critical : Bool
+} derive(Eq, @debug.Debug)
+
+///|
+pub struct ImpactPlan {
+  changed : Array[String]
+  affected : Array[String]
+  unaffected : Array[String]
+  affected_duration : Int
+  affected_critical_tasks : Array[String]
+  rebuild_layers : Array[Array[String]]
+} derive(Eq, @debug.Debug)
+
+///|
 pub fn TaskSpec::make(
   id : String,
   duration? : Int = 1,
@@ -116,4 +157,149 @@ pub fn Analysis::layers(self : Analysis) -> Array[Array[String]] {
 ///|
 pub fn Analysis::critical_path(self : Analysis) -> CriticalPath {
   self.critical_path
+}
+
+///|
+pub fn GraphStats::tasks(self : GraphStats) -> Int {
+  self.tasks
+}
+
+///|
+pub fn GraphStats::edges(self : GraphStats) -> Int {
+  self.edges
+}
+
+///|
+pub fn GraphStats::roots(self : GraphStats) -> Int {
+  self.roots
+}
+
+///|
+pub fn GraphStats::leaves(self : GraphStats) -> Int {
+  self.leaves
+}
+
+///|
+pub fn GraphStats::total_duration(self : GraphStats) -> Int {
+  self.total_duration
+}
+
+///|
+pub fn GraphStats::critical_duration(self : GraphStats) -> Int {
+  self.critical_duration
+}
+
+///|
+pub fn GraphStats::max_fan_in(self : GraphStats) -> Int {
+  self.max_fan_in
+}
+
+///|
+pub fn GraphStats::max_fan_out(self : GraphStats) -> Int {
+  self.max_fan_out
+}
+
+///|
+pub fn GraphStats::layer_count(self : GraphStats) -> Int {
+  self.layer_count
+}
+
+///|
+pub fn GraphStats::parallelism_hint(self : GraphStats) -> Int {
+  self.parallelism_hint
+}
+
+///|
+pub fn TaskInfo::id(self : TaskInfo) -> String {
+  self.id
+}
+
+///|
+pub fn TaskInfo::duration(self : TaskInfo) -> Int {
+  self.duration
+}
+
+///|
+pub fn TaskInfo::label(self : TaskInfo) -> String {
+  self.label
+}
+
+///|
+pub fn TaskInfo::dependencies(self : TaskInfo) -> Array[String] {
+  self.dependencies.copy()
+}
+
+///|
+pub fn TaskInfo::dependents(self : TaskInfo) -> Array[String] {
+  self.dependents.copy()
+}
+
+///|
+pub fn TaskInfo::blockers(self : TaskInfo) -> Array[String] {
+  self.blockers.copy()
+}
+
+///|
+pub fn TaskInfo::downstream(self : TaskInfo) -> Array[String] {
+  self.downstream.copy()
+}
+
+///|
+pub fn TaskInfo::earliest_start(self : TaskInfo) -> Int {
+  self.earliest_start
+}
+
+///|
+pub fn TaskInfo::earliest_finish(self : TaskInfo) -> Int {
+  self.earliest_finish
+}
+
+///|
+pub fn TaskInfo::latest_start(self : TaskInfo) -> Int {
+  self.latest_start
+}
+
+///|
+pub fn TaskInfo::latest_finish(self : TaskInfo) -> Int {
+  self.latest_finish
+}
+
+///|
+pub fn TaskInfo::slack(self : TaskInfo) -> Int {
+  self.slack
+}
+
+///|
+pub fn TaskInfo::is_critical(self : TaskInfo) -> Bool {
+  self.critical
+}
+
+///|
+pub fn ImpactPlan::changed(self : ImpactPlan) -> Array[String] {
+  self.changed.copy()
+}
+
+///|
+pub fn ImpactPlan::affected(self : ImpactPlan) -> Array[String] {
+  self.affected.copy()
+}
+
+///|
+pub fn ImpactPlan::unaffected(self : ImpactPlan) -> Array[String] {
+  self.unaffected.copy()
+}
+
+///|
+pub fn ImpactPlan::affected_duration(self : ImpactPlan) -> Int {
+  self.affected_duration
+}
+
+///|
+pub fn ImpactPlan::affected_critical_tasks(self : ImpactPlan) -> Array[String] {
+  self.affected_critical_tasks.copy()
+}
+
+///|
+pub fn ImpactPlan::rebuild_layers(self : ImpactPlan) -> Array[Array[String]] {
+  self.rebuild_layers.map(fn(layer) { layer.copy() })
 }

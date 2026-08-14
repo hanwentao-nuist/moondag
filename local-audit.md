@@ -25,9 +25,9 @@ content-defined chunking.
 - `moon check --target wasm --deny-warn`: passed
 - `moon check --target js --deny-warn`: passed
 - `moon check --target native --deny-warn`: passed
-- `moon test --target wasm-gc`: 11 passed
-- `moon test --target wasm`: 11 passed
-- `moon test --target js`: 11 passed
+- `moon test --target wasm-gc`: 17 passed
+- `moon test --target wasm`: 17 passed
+- `moon test --target js`: 17 passed
 - JavaScript CLI example comparisons: passed
 - `moon test --target native`: blocked locally because no system C compiler is
   installed (`cl`, `cc`, `gcc`, and `clang` not found); configured for GitHub

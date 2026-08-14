@@ -11,7 +11,11 @@ MoonDag is intentionally small and portable.
    and return results in topological order.
 5. `Dag::critical_path` and `Dag::schedule` perform dynamic programming over
    the DAG.
-6. `execute` exposes a no-filesystem CLI facade that works on portable targets;
+6. `Dag::stats`, `Dag::task_info`, and `Dag::impact_plan` provide higher-level
+   explanations for CI and release-planning workflows.
+7. DOT, Mermaid, CSV, and compact JSON exporters render the same in-memory
+   analysis without reading or writing files.
+8. `execute` exposes a no-filesystem CLI facade that works on portable targets;
    `cmd/main` only adapts process arguments and exit codes.
 
 Diagnostics are structured as `Diagnostic` values before rendering to text, so

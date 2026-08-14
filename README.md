@@ -2,8 +2,8 @@
 
 MoonDag is a MoonBit library and CLI for deterministic dependency graph analysis.
 It parses compact task pipeline specs, validates them as DAGs, and reports
-execution order, parallel layers, downstream impact, blockers, schedules, and
-critical paths.
+execution order, parallel layers, downstream impact, blockers, schedules,
+critical paths, graph statistics, affected rebuild plans, and portable exports.
 
 ## Scope
 
@@ -16,6 +16,8 @@ Supported:
 - downstream impact from one or more changed tasks
 - blocker discovery for a target task
 - earliest/latest schedule, slack, critical task marking, and Graphviz DOT export
+- task explanation, graph statistics, affected rebuild plans, Mermaid, CSV, and
+  compact JSON exports
 
 Partial:
 
@@ -74,6 +76,11 @@ moondag impact  --graph TEXT --changed ID[,ID]
 moondag block   --graph TEXT --target ID
 moondag schedule --graph TEXT
 moondag dot      --graph TEXT
+moondag stats    --graph TEXT
+moondag task     --graph TEXT --target ID
+moondag plan     --graph TEXT --changed ID[,ID]
+moondag mermaid  --graph TEXT
+moondag csv      --graph TEXT
 moondag demo
 ```
 
@@ -90,6 +97,10 @@ let layers = dag.layers()
 let impact = dag.downstream(["a"]).unwrap()
 let blockers = dag.blockers("b").unwrap()
 let schedule = dag.schedule()
+let stats = dag.stats()
+let plan = dag.impact_plan(["a"]).unwrap()
+let dot = dag.to_dot()
+let mermaid = dag.to_mermaid()
 ```
 
 Public interfaces are generated in `pkg.generated.mbti`.

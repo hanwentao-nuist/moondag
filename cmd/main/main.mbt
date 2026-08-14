@@ -12,6 +12,11 @@ fn main {
         value == "block" ||
         value == "schedule" ||
         value == "dot" ||
+        value == "stats" ||
+        value == "task" ||
+        value == "plan" ||
+        value == "mermaid" ||
+        value == "csv" ||
         value == "demo" ||
         value == "help" ||
         value == "--help" ||

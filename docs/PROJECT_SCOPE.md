@@ -12,6 +12,9 @@ control the total duration.
 - Compute downstream impact from `schema` and blockers for `package`.
 - Compute earliest/latest schedule, slack, and critical path.
 - Export Graphviz DOT text.
+- Explain one task with direct and transitive relationships.
+- Build affected-task plans from changed tasks.
+- Export Mermaid, CSV, and compact JSON strings.
 - Reject duplicate tasks, missing dependencies, self dependencies, invalid ids,
   invalid durations, empty input, and cycles with stable diagnostics.
 - Run the library tests and JavaScript/native CLI flows.

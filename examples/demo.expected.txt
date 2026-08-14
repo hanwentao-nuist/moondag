@@ -7,8 +7,10 @@ LAYERS
 3: test
 4: package
 CRITICAL 13 fetch -> schema -> compile -> test -> package
+STATS tasks=6 edges=6 roots=1 leaves=1 total_duration=15 critical_duration=13 max_fan_in=2 max_fan_out=2 layers=5 parallelism_hint=2
 IMPACT schema: schema compile lint test package
 BLOCK package: fetch schema compile lint test
+AFFECTED duration=13
 SCHEDULE duration=13
 fetch dur=2 es=0 ef=2 ls=0 lf=2 slack=0 critical=true
 schema dur=1 es=2 ef=3 ls=2 lf=3 slack=0 critical=true

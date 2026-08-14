@@ -47,14 +47,20 @@ pub struct Dag {
 pub fn Dag::analyze(Self) -> Analysis
 pub fn Dag::blockers(Self, String) -> Result[Array[String], Diagnostic]
 pub fn Dag::critical_path(Self) -> CriticalPath
+pub fn Dag::dependencies(Self, String) -> Result[Array[String], Diagnostic]
+pub fn Dag::dependents(Self, String) -> Result[Array[String], Diagnostic]
 pub fn Dag::downstream(Self, Array[String]) -> Result[Array[String], Diagnostic]
+pub fn Dag::impact_plan(Self, Array[String]) -> Result[ImpactPlan, Diagnostic]
 pub fn Dag::is_empty(Self) -> Bool
 pub fn Dag::layers(Self) -> Array[Array[String]]
 pub fn Dag::len(Self) -> Int
 pub fn Dag::nodes(Self) -> Array[TaskNode]
 pub fn Dag::schedule(Self) -> Schedule
+pub fn Dag::stats(Self) -> GraphStats
 pub fn Dag::summary_text(Self) -> String
+pub fn Dag::task_info(Self, String) -> Result[TaskInfo, Diagnostic]
 pub fn Dag::to_dot(Self) -> String
+pub fn Dag::to_mermaid(Self) -> String
 pub fn Dag::topological_order(Self) -> Array[String]
 
 pub struct Diagnostic {
@@ -81,13 +87,87 @@ pub fn GraphSpec::parse(String) -> Result[Self, Diagnostic]
 pub fn GraphSpec::tasks(Self) -> Array[TaskSpec]
 pub fn GraphSpec::to_text(Self) -> String
 
+pub struct GraphStats {
+  tasks : Int
+  edges : Int
+  roots : Int
+  leaves : Int
+  total_duration : Int
+  critical_duration : Int
+  max_fan_in : Int
+  max_fan_out : Int
+  layer_count : Int
+  parallelism_hint : Int
+} derive(Eq, @debug.Debug)
+pub fn GraphStats::critical_duration(Self) -> Int
+pub fn GraphStats::edges(Self) -> Int
+pub fn GraphStats::layer_count(Self) -> Int
+pub fn GraphStats::leaves(Self) -> Int
+pub fn GraphStats::max_fan_in(Self) -> Int
+pub fn GraphStats::max_fan_out(Self) -> Int
+pub fn GraphStats::parallelism_hint(Self) -> Int
+pub fn GraphStats::roots(Self) -> Int
+pub fn GraphStats::tasks(Self) -> Int
+pub fn GraphStats::to_json(Self) -> String
+pub fn GraphStats::to_text(Self) -> String
+pub fn GraphStats::total_duration(Self) -> Int
+
+pub struct ImpactPlan {
+  changed : Array[String]
+  affected : Array[String]
+  unaffected : Array[String]
+  affected_duration : Int
+  affected_critical_tasks : Array[String]
+  rebuild_layers : Array[Array[String]]
+} derive(Eq, @debug.Debug)
+pub fn ImpactPlan::affected(Self) -> Array[String]
+pub fn ImpactPlan::affected_critical_tasks(Self) -> Array[String]
+pub fn ImpactPlan::affected_duration(Self) -> Int
+pub fn ImpactPlan::changed(Self) -> Array[String]
+pub fn ImpactPlan::rebuild_layers(Self) -> Array[Array[String]]
+pub fn ImpactPlan::to_json(Self) -> String
+pub fn ImpactPlan::to_text(Self) -> String
+pub fn ImpactPlan::unaffected(Self) -> Array[String]
+
 pub struct Schedule {
   duration : Int
   entries : Array[TaskTiming]
 } derive(Eq, @debug.Debug)
 pub fn Schedule::duration(Self) -> Int
 pub fn Schedule::entries(Self) -> Array[TaskTiming]
+pub fn Schedule::to_csv(Self) -> String
 pub fn Schedule::to_text(Self) -> String
+
+pub struct TaskInfo {
+  id : String
+  duration : Int
+  label : String
+  dependencies : Array[String]
+  dependents : Array[String]
+  blockers : Array[String]
+  downstream : Array[String]
+  earliest_start : Int
+  earliest_finish : Int
+  latest_start : Int
+  latest_finish : Int
+  slack : Int
+  critical : Bool
+} derive(Eq, @debug.Debug)
+pub fn TaskInfo::blockers(Self) -> Array[String]
+pub fn TaskInfo::dependencies(Self) -> Array[String]
+pub fn TaskInfo::dependents(Self) -> Array[String]
+pub fn TaskInfo::downstream(Self) -> Array[String]
+pub fn TaskInfo::duration(Self) -> Int
+pub fn TaskInfo::earliest_finish(Self) -> Int
+pub fn TaskInfo::earliest_start(Self) -> Int
+pub fn TaskInfo::id(Self) -> String
+pub fn TaskInfo::is_critical(Self) -> Bool
+pub fn TaskInfo::label(Self) -> String
+pub fn TaskInfo::latest_finish(Self) -> Int
+pub fn TaskInfo::latest_start(Self) -> Int
+pub fn TaskInfo::slack(Self) -> Int
+pub fn TaskInfo::to_json(Self) -> String
+pub fn TaskInfo::to_text(Self) -> String
 
 pub struct TaskNode {
   id : String
