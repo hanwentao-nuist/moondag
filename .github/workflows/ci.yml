@@ -15,9 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Install MoonBit
-        uses: moonbit-community/setup-moonbit@04293a8a813bfd4b6c2fce22701b52ae1050d100
-        with:
-          version: latest
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
       - name: Resolve dependencies
         run: moon update
       - name: Format and strict checks
@@ -52,9 +52,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Install MoonBit
-        uses: moonbit-community/setup-moonbit@04293a8a813bfd4b6c2fce22701b52ae1050d100
-        with:
-          version: latest
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
       - name: Resolve dependencies
         run: moon update
       - name: Native verification

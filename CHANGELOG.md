@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 - 2026-08-13
+## 0.1.0 - 2026-08-14
 
 - Added graph parsing and DAG validation.
 - Added topological order, execution layers, impact, blockers, critical path,
