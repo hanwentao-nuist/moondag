@@ -52,7 +52,9 @@ pub fn Dag::is_empty(Self) -> Bool
 pub fn Dag::layers(Self) -> Array[Array[String]]
 pub fn Dag::len(Self) -> Int
 pub fn Dag::nodes(Self) -> Array[TaskNode]
+pub fn Dag::schedule(Self) -> Schedule
 pub fn Dag::summary_text(Self) -> String
+pub fn Dag::to_dot(Self) -> String
 pub fn Dag::topological_order(Self) -> Array[String]
 
 pub struct Diagnostic {
@@ -79,6 +81,14 @@ pub fn GraphSpec::parse(String) -> Result[Self, Diagnostic]
 pub fn GraphSpec::tasks(Self) -> Array[TaskSpec]
 pub fn GraphSpec::to_text(Self) -> String
 
+pub struct Schedule {
+  duration : Int
+  entries : Array[TaskTiming]
+} derive(Eq, @debug.Debug)
+pub fn Schedule::duration(Self) -> Int
+pub fn Schedule::entries(Self) -> Array[TaskTiming]
+pub fn Schedule::to_text(Self) -> String
+
 pub struct TaskNode {
   id : String
   duration : Int
@@ -98,6 +108,25 @@ pub fn TaskSpec::duration(Self) -> Int
 pub fn TaskSpec::id(Self) -> String
 pub fn TaskSpec::label(Self) -> String
 pub fn TaskSpec::make(String, duration? : Int, deps? : Array[String], label? : String) -> Self
+
+pub struct TaskTiming {
+  id : String
+  duration : Int
+  earliest_start : Int
+  earliest_finish : Int
+  latest_start : Int
+  latest_finish : Int
+  slack : Int
+  critical : Bool
+} derive(Eq, @debug.Debug)
+pub fn TaskTiming::duration(Self) -> Int
+pub fn TaskTiming::earliest_finish(Self) -> Int
+pub fn TaskTiming::earliest_start(Self) -> Int
+pub fn TaskTiming::id(Self) -> String
+pub fn TaskTiming::is_critical(Self) -> Bool
+pub fn TaskTiming::latest_finish(Self) -> Int
+pub fn TaskTiming::latest_start(Self) -> Int
+pub fn TaskTiming::slack(Self) -> Int
 
 // Type aliases
 

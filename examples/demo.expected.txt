@@ -1,0 +1,18 @@
+MOONDAG tasks=6 edges=6
+ORDER fetch schema compile lint test package
+LAYERS
+0: fetch
+1: schema
+2: compile lint
+3: test
+4: package
+CRITICAL 13 fetch -> schema -> compile -> test -> package
+IMPACT schema: schema compile lint test package
+BLOCK package: fetch schema compile lint test
+SCHEDULE duration=13
+fetch dur=2 es=0 ef=2 ls=0 lf=2 slack=0 critical=true
+schema dur=1 es=2 ef=3 ls=2 lf=3 slack=0 critical=true
+compile dur=5 es=3 ef=8 ls=3 lf=8 slack=0 critical=true
+lint dur=2 es=3 ef=5 ls=6 lf=8 slack=3 critical=false
+test dur=4 es=8 ef=12 ls=8 lf=12 slack=0 critical=true
+package dur=1 es=12 ef=13 ls=12 lf=13 slack=0 critical=true

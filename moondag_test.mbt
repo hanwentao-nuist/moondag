@@ -41,3 +41,26 @@ test "command diagnostics are stable" {
   assert_eq(result.exit_code(), 2)
   assert_true(result.output().contains("graph.cycle"))
 }
+
+///|
+test "schedule computes slack and critical tasks" {
+  let dag = @moondag.compile_graph(@moondag.demo_graph()).unwrap()
+  let schedule = dag.schedule()
+  assert_eq(schedule.duration(), 13)
+  let entries = schedule.entries()
+  assert_eq(entries[2].id(), "compile")
+  assert_eq(entries[2].earliest_start(), 3)
+  assert_eq(entries[2].latest_start(), 3)
+  assert_true(entries[2].is_critical())
+  assert_eq(entries[3].id(), "lint")
+  assert_eq(entries[3].slack(), 3)
+}
+
+///|
+test "dot output marks critical nodes and graph edges" {
+  let dag = @moondag.compile_graph("a | 1 | -\nb | 2 | a\nc | 1 | a").unwrap()
+  let dot = dag.to_dot()
+  assert_true(dot.contains("digraph moondag"))
+  assert_true(dot.contains("\"a\" -> \"b\""))
+  assert_true(dot.contains("color=\"red\""))
+}

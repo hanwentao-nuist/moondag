@@ -1,0 +1,5 @@
+SCHEDULE duration=6
+a dur=1 es=0 ef=1 ls=0 lf=1 slack=0 critical=true
+b dur=2 es=1 ef=3 ls=1 lf=3 slack=0 critical=true
+c dur=1 es=1 ef=2 ls=2 lf=3 slack=1 critical=false
+d dur=3 es=3 ef=6 ls=3 lf=6 slack=0 critical=true

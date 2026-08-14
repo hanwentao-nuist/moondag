@@ -1,0 +1,7 @@
+MOONDAG tasks=4 edges=4
+ORDER a b c d
+LAYERS
+0: a
+1: b c
+2: d
+CRITICAL 6 a -> b -> d

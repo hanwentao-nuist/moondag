@@ -35,6 +35,8 @@ pub let help_text =
   #|  moondag layers  --graph TEXT
   #|  moondag impact  --graph TEXT --changed ID[,ID]
   #|  moondag block   --graph TEXT --target ID
+  #|  moondag schedule --graph TEXT
+  #|  moondag dot      --graph TEXT
   #|  moondag demo
   #|
   #|GRAPH: lines use id | duration | dep-a,dep-b | optional label. Use \n escapes in CLI text.
@@ -194,6 +196,22 @@ fn block_command(args : Array[String]) -> CommandResult {
 }
 
 ///|
+fn schedule_command(args : Array[String]) -> CommandResult {
+  match graph_option(args) {
+    Ok(dag) => command_ok(dag.schedule().to_text())
+    Err(error) => error
+  }
+}
+
+///|
+fn dot_command(args : Array[String]) -> CommandResult {
+  match graph_option(args) {
+    Ok(dag) => command_ok(dag.to_dot())
+    Err(error) => error
+  }
+}
+
+///|
 pub fn demo_graph() -> String {
   (
     #|fetch | 2 | - | fetch sources
@@ -215,7 +233,9 @@ fn demo_command() -> CommandResult {
     "\nIMPACT schema: " +
     join_strings(impact, " ") +
     "\nBLOCK package: " +
-    join_strings(blockers, " "),
+    join_strings(blockers, " ") +
+    "\n" +
+    dag.schedule().to_text(),
   )
 }
 
@@ -231,6 +251,8 @@ pub fn execute(args : Array[String]) -> CommandResult {
     "layers" => layers_command(args)
     "impact" => impact_command(args)
     "block" => block_command(args)
+    "schedule" => schedule_command(args)
+    "dot" => dot_command(args)
     "demo" => demo_command()
     other => command_fail("unknown command: " + other + "\n\n" + help_text)
   }

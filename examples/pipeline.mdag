@@ -1,0 +1,6 @@
+fetch | 2 | - | fetch sources
+schema | 1 | fetch | validate manifests
+compile | 5 | schema | compile packages
+lint | 2 | schema | static checks
+test | 4 | compile,lint | run test matrix
+package | 1 | test | prepare release

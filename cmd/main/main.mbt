@@ -10,6 +10,8 @@ fn main {
         value == "layers" ||
         value == "impact" ||
         value == "block" ||
+        value == "schedule" ||
+        value == "dot" ||
         value == "demo" ||
         value == "help" ||
         value == "--help" ||
