@@ -9,7 +9,7 @@
 //   "moonbitlang/x@0.4.6",
 // }
 
-name = "Han-Wentao/moondag"
+name = "hanwentao-nuist/moondag"
 
 version = "0.1.0"
 
