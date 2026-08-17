@@ -1,13 +1,13 @@
 # Third-Party Notices
 
-MoonDag contains original MoonBit source code written for the 2026 MoonBit
-August Hackathon.
+MoonDag contains original MoonBit analysis code and depends on:
 
-Dependencies:
-
+- `AlexenderSokolov/moonflowgraph@0.3.0`, Apache-2.0,
+  https://github.com/AlexenderSokolov/moonflowgraph. It supplies the task graph,
+  dependency validation, cycle detection, topological order, and execution
+  batches that MoonDag extends with duration and impact analysis.
+- `moonbitlang/x@0.4.49`, Apache-2.0, used for CLI process exit support.
 - MoonBit standard library and official toolchain.
-- `moonbitlang/x@0.4.49`, used by the native CLI package for process exit
-  support through `moonbitlang/x/sys`.
 
-No external code, images, datasets, or generated binary assets are vendored in
-this repository.
+No upstream source code, images, datasets, or binary assets are copied into this
+repository. Dependencies are resolved by the MoonBit package manager.

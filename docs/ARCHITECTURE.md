@@ -1,22 +1,22 @@
 # Architecture
 
-MoonDag is intentionally small and portable.
+MoonDag 0.2 is an analysis layer above MoonFlowGraph.
 
-1. `GraphSpec::parse` reads a line-oriented task format and produces named task
-   specs.
-2. `GraphSpec::compile` validates uniqueness, references, self dependencies,
-   task limits, and acyclicity, then compiles dependency names to indexes.
-3. `Dag::topological_order` and `Dag::layers` use deterministic Kahn traversal.
-4. `Dag::downstream` and `Dag::blockers` traverse dependents or dependencies
-   and return results in topological order.
-5. `Dag::critical_path` and `Dag::schedule` perform dynamic programming over
-   the DAG.
-6. `Dag::stats`, `Dag::task_info`, and `Dag::impact_plan` provide higher-level
-   explanations for CI and release-planning workflows.
-7. DOT, Mermaid, CSV, and compact JSON exporters render the same in-memory
-   analysis without reading or writing files.
-8. `execute` exposes a no-filesystem CLI facade that works on portable targets;
-   `cmd/main` only adapts process arguments and exit codes.
+1. A caller supplies a `@moonflowgraph.FlowGraph` and duration estimates, or
+   uses the compact text adapter to construct them.
+2. `FlowGraph::plan` performs endpoint validation, cycle detection, topological
+   sorting, and execution batching. MoonDag contains no Kahn-sort or cycle-trace
+   implementation.
+3. MoonDag maps the upstream `ExecutionPlan` and graph snapshots to indexed
+   duration records.
+4. `Dag::schedule` performs CPM forward and backward passes to derive the
+   project horizon, earliest/latest times, slack, and critical tasks.
+5. `Dag::critical_path`, `Dag::downstream`, `Dag::blockers`, and
+   `Dag::impact_plan` derive duration and change-planning answers not exposed by
+   MoonFlowGraph.
+6. Schedule-aware text, DOT, CSV, and JSON exporters render those results.
+7. The CLI is a convenience facade; its order/layer views only display the
+   upstream plan already stored in `Dag`.
 
-Diagnostics are structured as `Diagnostic` values before rendering to text, so
-callers can assert exact failure codes without parsing prose.
+MoonFlowGraph errors are translated to stable MoonDag diagnostics while keeping
+the upstream planner as the source of graph validity and execution order.

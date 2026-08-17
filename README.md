@@ -1,34 +1,50 @@
 # MoonDag
 
-MoonDag is a MoonBit library and CLI for deterministic dependency graph analysis.
-It parses compact task pipeline specs, validates them as DAGs, and reports
-execution order, parallel layers, downstream impact, blockers, schedules,
-critical paths, graph statistics, affected rebuild plans, and portable exports.
+MoonDag is a duration, critical-path, and change-impact analysis extension for
+[MoonFlowGraph](https://github.com/AlexenderSokolov/moonflowgraph). It does not
+implement an independent task-graph planner: graph validation, cycle detection,
+topological order, and execution batches come from
+`AlexenderSokolov/moonflowgraph@0.3.0`.
+
+MoonDag adds the analysis layer that MoonFlowGraph deliberately does not cover:
+integer duration estimates, CPM forward/backward passes, earliest/latest times,
+slack, critical paths, transitive change impact, target blockers, and affected
+rerun plans.
+
+## Upstream Relationship
+
+| Capability | Owner |
+| --- | --- |
+| Task nodes, dependency edges, missing-endpoint checks, cycle detection | MoonFlowGraph |
+| Topological order and parallel execution batches | MoonFlowGraph `ExecutionPlan` |
+| Duration estimates and schedule horizon | MoonDag |
+| Earliest/latest start and finish, slack, critical path | MoonDag |
+| Transitive impact, blockers, affected duration, rerun layers | MoonDag |
+
+The public `analyze_flow_graph` API accepts a real MoonFlowGraph `FlowGraph`.
+The compact text format is only a convenience adapter: it builds a
+MoonFlowGraph and then calls the same extension API. See
+[`docs/UPSTREAM_RELATION.md`](docs/UPSTREAM_RELATION.md) for the exact boundary.
 
 ## Scope
 
 Supported:
 
-- line-oriented graph specs: `id | duration | dep-a,dep-b | optional label`
-- duplicate, missing, self-dependency, cycle, identifier, and duration diagnostics
-- stable topological order using declaration order as the tie breaker
-- execution layers for parallel scheduling
-- downstream impact from one or more changed tasks
-- blocker discovery for a target task
-- earliest/latest schedule, slack, critical task marking, and Graphviz DOT export
-- task explanation, graph statistics, affected rebuild plans, Mermaid, CSV, and
-  compact JSON exports
+- direct analysis of a MoonFlowGraph with one `TaskEstimate` per task
+- integer duration units from 1 to 1,000,000
+- CPM earliest/latest schedule, slack, critical task marking, and critical path
+- downstream change impact, target blockers, and affected rerun plans
+- schedule-aware DOT, CSV, compact JSON, task explanations, and statistics
+- a line-oriented convenience format: `id | duration | dep-a,dep-b | label`
+- stable diagnostics translated from MoonFlowGraph errors
 
-Partial:
+Not provided by MoonDag:
 
-- durations are integer units and intentionally do not model calendars, time zones, or resources
-- DOT output is textual and does not render images
-
-Unsupported:
-
-- cyclic workflow execution
-- resource leveling, worker assignment, probabilistic estimates, benchmark timing, or CI performance regression gates
-- calendar recurrence or date expansion
+- independent DAG validation, cycle detection, or topological sorting
+- provenance traces, task lifecycle state, workflow JSON, or execution; those
+  remain MoonFlowGraph responsibilities
+- resource leveling, worker assignment, calendars, probabilistic estimates,
+  benchmark sampling, or performance regression gates
 
 ## Quick Start
 
@@ -37,27 +53,17 @@ moon test --target wasm-gc
 moon run cmd/main --target js -- demo
 ```
 
-Example graph:
-
-```text
-fetch | 2 | - | fetch sources
-schema | 1 | fetch | validate manifests
-compile | 5 | schema | compile packages
-lint | 2 | schema | static checks
-test | 4 | compile,lint | run test matrix
-package | 1 | test | prepare release
-```
-
-Inspect a small pipeline:
+Inspect the convenience format:
 
 ```bash
 moon run cmd/main --target js -- inspect --graph 'a | 1 | -\nb | 2 | a\nc | 1 | a\nd | 3 | b,c'
 ```
 
-Expected summary:
+The output names the planner explicitly:
 
 ```text
 MOONDAG tasks=4 edges=4
+PLANNER AlexenderSokolov/moonflowgraph@0.3.0
 ORDER a b c d
 LAYERS
 0: a
@@ -66,62 +72,69 @@ LAYERS
 CRITICAL 6 a -> b -> d
 ```
 
+## Direct Extension API
+
+```moonbit
+let graph = @moonflowgraph.FlowGraph::new()
+graph.add_task(@moonflowgraph.TaskNode::new("prepare", "Prepare")).unwrap()
+graph.add_task(@moonflowgraph.TaskNode::new("build", "Build")).unwrap()
+graph.add_dependency(
+  @moonflowgraph.TaskId::new("prepare"),
+  @moonflowgraph.TaskId::new("build"),
+).unwrap()
+
+let analysis = @moondag.analyze_flow_graph(graph, [
+  @moondag.TaskEstimate::new("prepare", 2),
+  @moondag.TaskEstimate::new("build", 5),
+]).unwrap()
+
+let schedule = analysis.schedule()
+let impact = analysis.impact_plan(["prepare"]).unwrap()
+```
+
+Consumers import both `AlexenderSokolov/moonflowgraph` and
+`hanwentao-nuist/moondag`. Public interfaces are generated in
+`pkg.generated.mbti`.
+
 ## CLI
 
 ```text
-moondag inspect --graph TEXT
-moondag order   --graph TEXT
-moondag layers  --graph TEXT
-moondag impact  --graph TEXT --changed ID[,ID]
-moondag block   --graph TEXT --target ID
+moondag inspect  --graph TEXT
 moondag schedule --graph TEXT
-moondag dot      --graph TEXT
-moondag stats    --graph TEXT
-moondag task     --graph TEXT --target ID
+moondag impact   --graph TEXT --changed ID[,ID]
+moondag block    --graph TEXT --target ID
 moondag plan     --graph TEXT --changed ID[,ID]
-moondag mermaid  --graph TEXT
+moondag task     --graph TEXT --target ID
+moondag stats    --graph TEXT
+moondag dot      --graph TEXT
 moondag csv      --graph TEXT
+moondag order|layers|mermaid --graph TEXT
 moondag demo
 ```
 
-CLI text decodes `\n`, `\r`, `\t`, and `\\`. Success exits with code `0`;
-usage and validation errors exit with code `2` and include stable diagnostic
-codes such as `graph.cycle` or `graph.dep.missing`.
-
-## Library API
-
-```moonbit
-let dag = @moondag.compile_graph("a | 1 | -\nb | 2 | a").unwrap()
-let order = dag.topological_order()
-let layers = dag.layers()
-let impact = dag.downstream(["a"]).unwrap()
-let blockers = dag.blockers("b").unwrap()
-let schedule = dag.schedule()
-let stats = dag.stats()
-let plan = dag.impact_plan(["a"]).unwrap()
-let dot = dag.to_dot()
-let mermaid = dag.to_mermaid()
-```
-
-Public interfaces are generated in `pkg.generated.mbti`.
+`order`, `layers`, and `mermaid` are compatibility views over upstream-derived
+graph data, not separate planner implementations. Success exits with `0`;
+usage and validation errors exit with `2`.
 
 ## Verification
 
+MoonFlowGraph 0.3.0 emits compiler warning `0079` with the August 2026
+toolchain. The checks disable only that upstream warning; all other warnings are
+still errors.
+
 ```bash
 moon fmt --check
-moon check --target wasm-gc --deny-warn
-moon check --target wasm --deny-warn
-moon check --target js --deny-warn
-moon check --target native --deny-warn
+moon check --target wasm-gc --warn-list -79 --deny-warn
+moon check --target wasm --warn-list -79 --deny-warn
+moon check --target js --warn-list -79 --deny-warn
+moon check --target native --warn-list -79 --deny-warn
 moon test --target wasm-gc
 moon test --target wasm
 moon test --target js
 moon test --target native
 ```
 
-The GitHub Actions workflow reproduces these checks and compares CLI output
-against files in `examples/`.
-
 ## License
 
-MoonDag is released under the Apache License 2.0. See `LICENSE`.
+MoonDag is Apache-2.0. MoonFlowGraph is also Apache-2.0 and remains an external
+dependency; see `THIRD_PARTY.md`.

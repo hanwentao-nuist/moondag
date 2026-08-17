@@ -1,29 +1,24 @@
 # Project Scope
 
-MoonDag solves a dependency graph analysis problem for task pipelines. It helps
-tool authors and release engineers answer: what can run first, what can run in
-parallel, what is affected by a change, what blocks a target, and which tasks
-control the total duration.
+MoonDag extends MoonFlowGraph task graphs with estimated-duration and
+change-impact analysis for build, release, and CI planning.
 
 ## Acceptance Flows
 
-- Parse and inspect a valid multi-node graph.
-- Compute deterministic topological order and parallel layers.
-- Compute downstream impact from `schema` and blockers for `package`.
-- Compute earliest/latest schedule, slack, and critical path.
-- Export Graphviz DOT text.
-- Explain one task with direct and transitive relationships.
-- Build affected-task plans from changed tasks.
-- Export Mermaid, CSV, and compact JSON strings.
-- Reject duplicate tasks, missing dependencies, self dependencies, invalid ids,
-  invalid durations, empty input, and cycles with stable diagnostics.
-- Run the library tests and JavaScript/native CLI flows.
+- Construct a real MoonFlowGraph and analyze it through `analyze_flow_graph`.
+- Prove that validation, topological order, and batches come from its
+  `ExecutionPlan`.
+- Attach one bounded integer duration estimate to every upstream task.
+- Compute earliest/latest starts and finishes, total horizon, slack, and the
+  critical path.
+- Compute transitive impact, blockers, affected duration, and rerun layers.
+- Export schedule-aware text, DOT, CSV, and compact JSON reports.
+- Reject missing, duplicate, out-of-range, and unknown estimates.
+- Preserve stable diagnostics for upstream graph errors.
 
 ## Non-Goals
 
-- No timing sample collection, benchmark comparison, or performance gates.
-- No OpenAPI, HTTP contract, mock server, or case replay behavior.
-- No calendar recurrence, recurring event expansion, or date scheduling.
-- No content-defined chunking, manifests, deduplicated transfer planning, or
-  byte reconstruction.
-- No unified-diff parsing or patch application.
+- No independent graph planner, cycle detector, or topological-sort algorithm.
+- No replacement for MoonFlowGraph provenance, lifecycle, JSON, or reporting.
+- No task execution, shell commands, LLM calls, secrets, or credentials.
+- No resource leveling, worker assignment, calendars, or probabilistic timing.

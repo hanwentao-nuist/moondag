@@ -1,12 +1,17 @@
-# Non-Duplication Matrix
+# Capability Boundary
 
-| Candidate | Domain | Core Data | Primary Workflow | Registry Overlap | Decision |
-| --- | --- | --- | --- | --- | --- |
-| MoonDag | Dependency graph and task pipeline analysis | Task ids, directed dependency edges, durations, graph layers | Parse graph, validate DAG, derive order/layers/impact/blockers/critical path | Does not use benchmark samples, OpenAPI schemas, recurrence dates, unified diffs, or byte chunks | Selected |
-| MoonQuota | Static quota and budget policy checks | Quota rules, resource counters, policy violations | Parse limits, evaluate requests, emit policy diagnostics | Distinct, but lower MoonBit ecosystem value for this round | Rejected |
-| MoonTraceMap | Event trace normalization | Timestamped events and spans | Parse trace logs, normalize spans, summarize causal chains | Too close to timing/performance-adjacent workflows if centered on latency | Rejected |
+| Area | MoonFlowGraph 0.3.0 | MoonDag 0.2.0 |
+| --- | --- | --- |
+| Task and dependency model | Owns | Consumes |
+| Missing endpoint and cycle validation | Owns | Translates diagnostics |
+| Topological order and execution batches | Owns | Displays upstream plan |
+| Provenance, task status, workflow/snapshot JSON | Owns | Out of scope |
+| Duration estimate model | Not provided | Owns |
+| CPM earliest/latest schedule and slack | Not provided | Owns |
+| Critical path by duration | Not provided | Owns |
+| Transitive changed-task impact and blockers | Not provided | Owns |
+| Affected duration and rerun layers | Not provided | Owns |
 
-The selected project shares ordinary engineering surfaces such as CLI, tests,
-Markdown documentation, and CI with earlier entries, but its identity is the
-DAG problem loop: dependency graph validation and deterministic pipeline
-analysis.
+MoonDag previously implemented DAG validation and topological traversal itself.
+Version 0.2 removed those duplicate algorithms after initial-review feedback and
+now calls the published Apache-2.0 MoonFlowGraph package directly.
