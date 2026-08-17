@@ -33,6 +33,13 @@ Warning `0079` is disabled because it originates in the pinned MoonFlowGraph
 0.3.0 source with the August 2026 compiler. `--deny-warn` still rejects every
 other warning class.
 
+## Remote Evidence
+
+- GitHub Actions run: https://github.com/hanwentao-nuist/moondag/actions/runs/32037443849
+- Tested commit: `f465bcc878b14313fce3690c93532b017aff805e`
+- `Portable checks`: passed
+- `Native checks and CLI`: passed
+
 ## Deliverables
 
 - MoonBit extension implementation and 20 tests: root package and `cmd/main`
