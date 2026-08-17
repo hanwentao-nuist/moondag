@@ -23,7 +23,31 @@ pub struct TaskNode {
 ///|
 pub struct Dag {
   nodes : Array[TaskNode]
+  order : Array[Int]
+  layers : Array[Array[Int]]
 } derive(Eq, @debug.Debug)
+
+///|
+/// A duration estimate attached to a task from MoonFlowGraph.
+pub struct TaskEstimate {
+  id : String
+  duration : Int
+} derive(Eq, @debug.Debug)
+
+///|
+pub fn TaskEstimate::new(id : String, duration : Int) -> TaskEstimate {
+  { id, duration }
+}
+
+///|
+pub fn TaskEstimate::id(self : TaskEstimate) -> String {
+  self.id
+}
+
+///|
+pub fn TaskEstimate::duration(self : TaskEstimate) -> Int {
+  self.duration
+}
 
 ///|
 pub struct CriticalPath {

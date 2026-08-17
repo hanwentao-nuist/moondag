@@ -29,7 +29,7 @@ pub fn Dag::summary_text(self : Dag) -> String {
     " edges=" +
     edge_count.to_string(),
   )
-  output.write_string("\n")
+  output.write_string("\nPLANNER " + planner_backend() + "\n")
   output.write_string(self.analyze().to_text())
   output.to_string()
 }

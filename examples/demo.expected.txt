@@ -1,4 +1,5 @@
 MOONDAG tasks=6 edges=6
+PLANNER AlexenderSokolov/moonflowgraph@0.3.0
 ORDER fetch schema compile lint test package
 LAYERS
 0: fetch

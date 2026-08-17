@@ -26,8 +26,8 @@ fn command_fail(output : String) -> CommandResult {
 
 ///|
 pub let help_text =
-  #|MoonDag 0.1.0
-  #|Deterministic dependency graph and task pipeline analysis.
+  #|MoonDag 0.2.0
+  #|Duration, CPM, and change-impact analysis for MoonFlowGraph.
   #|
   #|USAGE:
   #|  moondag inspect --graph TEXT

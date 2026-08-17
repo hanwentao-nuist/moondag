@@ -11,7 +11,7 @@
 
 name = "hanwentao-nuist/moondag"
 
-version = "0.1.0"
+version = "0.2.0"
 
 readme = "README.md"
 
@@ -19,12 +19,13 @@ repository = "https://github.com/hanwentao-nuist/moondag"
 
 license = "Apache-2.0"
 
-keywords = [ "dag", "dependency-graph", "workflow", "critical-path" ]
+keywords = [ "moonflowgraph", "cpm", "impact-analysis", "critical-path" ]
 
 preferred_target = "wasm-gc"
 
-description = "Deterministic DAG validation and task pipeline analysis for MoonBit"
+description = "Duration, CPM, and change-impact analysis extension for MoonFlowGraph"
 
 import {
   "moonbitlang/x@0.4.49",
+  "AlexenderSokolov/moonflowgraph@0.3.0",
 }

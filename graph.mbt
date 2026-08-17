@@ -1,208 +1,235 @@
 ///|
-fn validate_unique_tasks(tasks : Array[TaskSpec]) -> Result[Unit, Diagnostic] {
-  for index, task in tasks {
-    for previous = 0; previous < index; previous = previous + 1 {
-      if tasks[previous].id == task.id {
-        return Err(
-          Diagnostic::new(
-            "graph.task.duplicate",
-            "tasks[" + index.to_string() + "]",
-            "task id appears more than once",
-            "unique task ids",
-            task.id,
-          ),
-        )
-      }
+fn flow_error(error : @moonflowgraph.GraphError) -> Diagnostic {
+  match error {
+    DuplicateTask(id) =>
+      Diagnostic::new(
+        "graph.task.duplicate",
+        "tasks",
+        "MoonFlowGraph rejected a duplicate task id",
+        "unique task ids",
+        id.value(),
+      )
+    DuplicateDependency(edge) =>
+      Diagnostic::new(
+        "graph.dep.duplicate",
+        "dependencies",
+        "MoonFlowGraph rejected a duplicate dependency",
+        "unique dependency edges",
+        edge.before().value() + " -> " + edge.after().value(),
+      )
+    MissingTask(id) =>
+      Diagnostic::new(
+        "graph.task.missing",
+        "tasks",
+        "MoonFlowGraph could not find a task",
+        "declared task id",
+        id.value(),
+      )
+    MissingDependencyEndpoint(edge) =>
+      Diagnostic::new(
+        "graph.dep.missing",
+        "dependencies",
+        "MoonFlowGraph rejected a dependency with a missing endpoint",
+        "declared task ids",
+        edge.before().value() + " -> " + edge.after().value(),
+      )
+    CycleDetected(ids) => {
+      let values = ids.map(fn(id) { id.value() })
+      Diagnostic::new(
+        "graph.cycle",
+        "graph",
+        "dependency graph contains a cycle",
+        "directed acyclic graph",
+        join_strings(values, " -> "),
+      )
     }
   }
-  Ok(())
 }
 
 ///|
-fn check_references(tasks : Array[TaskSpec]) -> Result[Unit, Diagnostic] {
-  for task_index, task in tasks {
-    for dep_index, dep in task.deps {
-      if dep == task.id {
+fn estimate_for(
+  estimates : Array[TaskEstimate],
+  id : String,
+) -> Result[Int, Diagnostic] {
+  let mut found : Int? = None
+  for estimate in estimates {
+    if estimate.id == id {
+      if found is Some(_) {
         return Err(
           Diagnostic::new(
-            "graph.dep.self",
-            "tasks[" +
-            task_index.to_string() +
-            "].deps[" +
-            dep_index.to_string() +
-            "]",
-            "task depends on itself",
-            "another task id",
-            dep,
+            "estimate.duplicate", "estimates", "task has more than one duration estimate",
+            "one estimate per MoonFlowGraph task", id,
           ),
         )
       }
-      if index_of_id(tasks, dep) is None {
-        return Err(
-          Diagnostic::new(
-            "graph.dep.missing",
-            "tasks[" +
-            task_index.to_string() +
-            "].deps[" +
-            dep_index.to_string() +
-            "]",
-            "dependency does not name a task in the graph",
-            "declared task id",
-            dep,
-          ),
-        )
-      }
+      found = Some(estimate.duration)
     }
   }
-  Ok(())
+  match found {
+    Some(duration) =>
+      if duration < 1 || duration > 1000000 {
+        Err(
+          Diagnostic::new(
+            "estimate.duration.range",
+            "estimates",
+            "duration estimate is outside the supported range",
+            "1..1000000",
+            duration.to_string(),
+          ),
+        )
+      } else {
+        Ok(duration)
+      }
+    None =>
+      Err(
+        Diagnostic::new(
+          "estimate.missing", "estimates", "MoonFlowGraph task has no duration estimate",
+          "one estimate per task", id,
+        ),
+      )
+  }
 }
 
 ///|
-fn build_nodes(tasks : Array[TaskSpec]) -> Array[TaskNode] {
-  let nodes = []
-  for task in tasks {
-    let deps = []
-    for dep in task.deps {
-      deps.push(index_of_id(tasks, dep).unwrap())
+fn indexes_from_flow_ids(
+  nodes : Array[TaskNode],
+  ids : Array[@moonflowgraph.TaskId],
+) -> Array[Int] {
+  ids.map(fn(id) { index_of_node(nodes, id.value()).unwrap() })
+}
+
+///|
+fn build_nodes_from_flow(
+  graph : @moonflowgraph.FlowGraph,
+  estimates : Array[TaskEstimate],
+) -> Result[Array[TaskNode], Diagnostic] {
+  let nodes : Array[TaskNode] = []
+  for task in graph.tasks() {
+    let id = task.id().value()
+    let duration = match estimate_for(estimates, id) {
+      Ok(value) => value
+      Err(error) => return Err(error)
     }
-    nodes.push({
-      id: task.id,
-      duration: task.duration,
+    nodes.push({ id, duration, deps: [], dependents: [], label: task.title() })
+  }
+  for estimate in estimates {
+    if index_of_node(nodes, estimate.id) is None {
+      return Err(
+        Diagnostic::new(
+          "estimate.task.unknown",
+          "estimates",
+          "duration estimate names a task outside MoonFlowGraph",
+          "MoonFlowGraph task id",
+          estimate.id,
+        ),
+      )
+    }
+  }
+  for edge in graph.dependencies() {
+    let before = index_of_node(nodes, edge.before().value()).unwrap()
+    let after = index_of_node(nodes, edge.after().value()).unwrap()
+    let parent = nodes[before]
+    let dependents = parent.dependents.copy()
+    dependents.push(after)
+    nodes[before] = {
+      id: parent.id,
+      duration: parent.duration,
+      deps: parent.deps,
+      dependents,
+      label: parent.label,
+    }
+    let child = nodes[after]
+    let deps = child.deps.copy()
+    deps.push(before)
+    nodes[after] = {
+      id: child.id,
+      duration: child.duration,
       deps,
-      dependents: [],
-      label: task.label,
-    })
-  }
-  for index, node in nodes {
-    for dep in node.deps {
-      let parent = nodes[dep]
-      let dependents = parent.dependents.copy()
-      dependents.push(index)
-      nodes[dep] = {
-        id: parent.id,
-        duration: parent.duration,
-        deps: parent.deps,
-        dependents,
-        label: parent.label,
-      }
+      dependents: child.dependents,
+      label: child.label,
     }
   }
-  nodes
+  Ok(nodes)
 }
 
 ///|
-fn find_ready(indegrees : Array[Int], used : Array[Bool]) -> Int? {
-  for index, value in indegrees {
-    if !used[index] && value == 0 {
-      return Some(index)
-    }
-  }
-  None
-}
-
-///|
-fn trace_cycle(
-  nodes : Array[TaskNode],
-  remaining : Array[Bool],
-) -> Array[String] {
-  let mut start = 0
-  while start < remaining.length() && !remaining[start] {
-    start = start + 1
-  }
-  let path = []
-  let positions = []
-  let mut current = start
-  while true {
-    for index, seen in path {
-      if seen == current {
-        let cycle = []
-        for item = index; item < path.length(); item = item + 1 {
-          cycle.push(nodes[path[item]].id)
-        }
-        cycle.push(nodes[current].id)
-        return cycle
-      }
-    }
-    path.push(current)
-    positions.push(current)
-    let mut next = current
-    let mut found = false
-    for dep in nodes[current].deps {
-      if remaining[dep] {
-        next = dep
-        found = true
-        break
-      }
-    }
-    if !found {
-      return ids_from_indexes(nodes, positions)
-    }
-    current = next
-  }
-  []
-}
-
-///|
-fn topo_indexes_or_cycle(
-  nodes : Array[TaskNode],
-) -> Result[Array[Int], Diagnostic] {
-  let indegrees = nodes.map(fn(node) { node.deps.length() })
-  let used = nodes.map(fn(_) { false })
-  let order = []
-  while order.length() < nodes.length() {
-    match find_ready(indegrees, used) {
-      Some(index) => {
-        used[index] = true
-        order.push(index)
-        for child in nodes[index].dependents {
-          indegrees[child] = indegrees[child] - 1
-        }
-      }
-      None => {
-        let remaining = used.map(fn(value) { !value })
-        let cycle = trace_cycle(nodes, remaining)
-        return Err(
-          Diagnostic::new(
-            "graph.cycle",
-            "graph",
-            "dependency graph contains a cycle",
-            "directed acyclic graph",
-            join_strings(cycle, " -> "),
-          ),
-        )
-      }
-    }
-  }
-  Ok(order)
-}
-
-///|
-/// Validate a parsed graph and compile dependency names to node indexes.
-pub fn GraphSpec::compile(self : GraphSpec) -> Result[Dag, Diagnostic] {
-  if self.tasks.length() > 4096 {
+/// Extend a validated MoonFlowGraph with duration-based CPM and impact analysis.
+pub fn analyze_flow_graph(
+  graph : @moonflowgraph.FlowGraph,
+  estimates : Array[TaskEstimate],
+) -> Result[Dag, Diagnostic] {
+  if graph.task_count() > 4096 {
     return Err(
       Diagnostic::new(
         "graph.task.limit",
         "tasks",
-        "graph exceeds the task safety limit",
+        "graph exceeds the analysis safety limit",
         "at most 4096 tasks",
-        self.tasks.length().to_string(),
+        graph.task_count().to_string(),
       ),
     )
   }
-  match validate_unique_tasks(self.tasks) {
-    Ok(_) => ()
+  let plan = match graph.plan() {
+    Ok(value) => value
+    Err(error) => return Err(flow_error(error))
+  }
+  let nodes = match build_nodes_from_flow(graph, estimates) {
+    Ok(value) => value
     Err(error) => return Err(error)
   }
-  match check_references(self.tasks) {
-    Ok(_) => ()
+  let order = indexes_from_flow_ids(nodes, plan.order())
+  let layers = plan
+    .batches()
+    .map(fn(batch) { indexes_from_flow_ids(nodes, batch) })
+  Ok({ nodes, order, layers })
+}
+
+///|
+fn flow_graph_from_spec(
+  spec : GraphSpec,
+) -> Result[@moonflowgraph.FlowGraph, Diagnostic] {
+  let graph = @moonflowgraph.FlowGraph::new()
+  for task in spec.tasks {
+    let result = graph.add_task(
+      @moonflowgraph.TaskNode::new(task.id, task.label),
+    )
+    if result is Err(error) {
+      return Err(flow_error(error))
+    }
+  }
+  for task in spec.tasks {
+    for dep in task.deps {
+      if dep == task.id {
+        return Err(
+          Diagnostic::new(
+            "graph.dep.self", "dependencies", "task depends on itself", "another task id",
+            dep,
+          ),
+        )
+      }
+      let result = graph.add_dependency(
+        @moonflowgraph.TaskId::new(dep),
+        @moonflowgraph.TaskId::new(task.id),
+      )
+      if result is Err(error) {
+        return Err(flow_error(error))
+      }
+    }
+  }
+  Ok(graph)
+}
+
+///|
+/// Convert the compact convenience format into a MoonFlowGraph, then extend it.
+pub fn GraphSpec::compile(self : GraphSpec) -> Result[Dag, Diagnostic] {
+  let graph = match flow_graph_from_spec(self) {
+    Ok(value) => value
     Err(error) => return Err(error)
   }
-  let nodes = build_nodes(self.tasks)
-  match topo_indexes_or_cycle(nodes) {
-    Ok(_) => Ok({ nodes, })
-    Err(error) => Err(error)
-  }
+  let estimates = self.tasks.map(fn(task) {
+    TaskEstimate::new(task.id, task.duration)
+  })
+  analyze_flow_graph(graph, estimates)
 }
 
 ///|

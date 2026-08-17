@@ -2,10 +2,13 @@
 package "hanwentao-nuist/moondag"
 
 import {
+  "AlexenderSokolov/moonflowgraph",
   "moonbitlang/core/debug",
 }
 
 // Values
+pub fn analyze_flow_graph(@moonflowgraph.FlowGraph, Array[TaskEstimate]) -> Result[Dag, Diagnostic]
+
 pub fn compile_graph(String) -> Result[Dag, Diagnostic]
 
 pub fn demo_graph() -> String
@@ -13,6 +16,8 @@ pub fn demo_graph() -> String
 pub fn execute(Array[String]) -> CommandResult
 
 pub let help_text : String
+
+pub fn planner_backend() -> String
 
 // Errors
 
@@ -43,6 +48,8 @@ pub fn CriticalPath::task_ids(Self) -> Array[String]
 
 pub struct Dag {
   nodes : Array[TaskNode]
+  order : Array[Int]
+  layers : Array[Array[Int]]
 } derive(Eq, @debug.Debug)
 pub fn Dag::analyze(Self) -> Analysis
 pub fn Dag::blockers(Self, String) -> Result[Array[String], Diagnostic]
@@ -137,6 +144,14 @@ pub fn Schedule::duration(Self) -> Int
 pub fn Schedule::entries(Self) -> Array[TaskTiming]
 pub fn Schedule::to_csv(Self) -> String
 pub fn Schedule::to_text(Self) -> String
+
+pub struct TaskEstimate {
+  id : String
+  duration : Int
+} derive(Eq, @debug.Debug)
+pub fn TaskEstimate::duration(Self) -> Int
+pub fn TaskEstimate::id(Self) -> String
+pub fn TaskEstimate::new(String, Int) -> Self
 
 pub struct TaskInfo {
   id : String

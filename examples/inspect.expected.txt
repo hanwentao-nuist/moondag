@@ -1,4 +1,5 @@
 MOONDAG tasks=4 edges=4
+PLANNER AlexenderSokolov/moonflowgraph@0.3.0
 ORDER a b c d
 LAYERS
 0: a

@@ -1,6 +1,6 @@
 ///|
 fn topo_indexes(dag : Dag) -> Array[Int] {
-  topo_indexes_or_cycle(dag.nodes).unwrap()
+  dag.order.copy()
 }
 
 ///|
@@ -10,27 +10,13 @@ pub fn Dag::topological_order(self : Dag) -> Array[String] {
 
 ///|
 pub fn Dag::layers(self : Dag) -> Array[Array[String]] {
-  let indegrees = self.nodes.map(fn(node) { node.deps.length() })
-  let used = self.nodes.map(fn(_) { false })
-  let layers = []
-  let mut done = 0
-  while done < self.nodes.length() {
-    let layer_indexes = []
-    for index, degree in indegrees {
-      if !used[index] && degree == 0 {
-        layer_indexes.push(index)
-      }
-    }
-    for index in layer_indexes {
-      used[index] = true
-      done = done + 1
-      for child in self.nodes[index].dependents {
-        indegrees[child] = indegrees[child] - 1
-      }
-    }
-    layers.push(ids_from_indexes(self.nodes, layer_indexes))
-  }
-  layers
+  self.layers.map(fn(layer) { ids_from_indexes(self.nodes, layer) })
+}
+
+///|
+/// Identifies the upstream planner used for validation, order, and batches.
+pub fn planner_backend() -> String {
+  "AlexenderSokolov/moonflowgraph@0.3.0"
 }
 
 ///|

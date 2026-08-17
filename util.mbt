@@ -136,16 +136,6 @@ fn csv_escape(source : String) -> String {
 }
 
 ///|
-fn index_of_id(tasks : Array[TaskSpec], id : String) -> Int? {
-  for index, task in tasks {
-    if task.id == id {
-      return Some(index)
-    }
-  }
-  None
-}
-
-///|
 fn index_of_node(nodes : Array[TaskNode], id : String) -> Int? {
   for index, node in nodes {
     if node.id == id {

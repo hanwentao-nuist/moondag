@@ -1,3 +1,4 @@
 import {
+  "AlexenderSokolov/moonflowgraph",
   "moonbitlang/core/debug",
 }
