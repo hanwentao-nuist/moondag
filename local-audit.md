@@ -1,49 +1,43 @@
 # Local Readiness Audit
 
-Date: 2026-08-14
+Date: 2026-08-17
 
-## Environment
+## Review Remediation
 
-- MoonBit: `moon 0.1.20260713`, `moonc v0.10.4+2cc641edf`
-- Git: `2.45.1.windows.1`
-- Python: `3.8.5`
-- GitHub CLI: `2.96.0`, not used for remote operations before local readiness
-- GitHub network: `github.com:443` and `api.github.com:443` reachable
-
-## Non-Duplication
-
-MoonDag is distinct from the reserved projects because its core data is task
-dependency graphs and durations, and its workflow is DAG validation plus
-pipeline analysis. It does not center on performance samples, OpenAPI contract
-validation, civil-calendar recurrence, unified-diff patch application, or
-content-defined chunking.
+- Confirmed overlap with `AlexenderSokolov/moonflowgraph@0.3.0` from the initial
+  review notice.
+- Added MoonFlowGraph as a direct Apache-2.0 dependency.
+- Removed MoonDag's local Kahn topological sort and cycle-tracing code.
+- Added `analyze_flow_graph` so callers pass a real upstream `FlowGraph`.
+- Restricted MoonDag's owned scope to durations, CPM timing/slack/critical path,
+  transitive impact/blockers, and affected rerun planning.
+- Added an explicit capability matrix, upstream relationship document, public
+  interface evidence, and CLI planner evidence.
 
 ## Local Evidence
 
 - `moon fmt --check`: passed
-- `moon check --target wasm-gc --deny-warn`: passed
-- `moon check --target wasm --deny-warn`: passed
-- `moon check --target js --deny-warn`: passed
-- `moon check --target native --deny-warn`: passed
-- `moon test --target wasm-gc`: 18 passed
-- `moon test --target wasm`: 18 passed
-- `moon test --target js`: 18 passed
+- `moon check --target wasm-gc --warn-list -79 --deny-warn`: passed
+- `moon check --target wasm --warn-list -79 --deny-warn`: passed
+- `moon check --target js --warn-list -79 --deny-warn`: passed
+- `moon check --target native --warn-list -79 --deny-warn`: passed
+- `moon test --target wasm-gc`: 20 passed
+- `moon test --target wasm`: 20 passed
+- `moon test --target js`: 20 passed
 - JavaScript CLI example comparisons: passed
 - `moon test --target native`: blocked locally because no system C compiler is
-  installed (`cl`, `cc`, `gcc`, and `clang` not found); configured for GitHub
-  Actions Ubuntu runner
-- Native CLI build and example comparison: blocked locally for the same C
-  compiler reason; configured for GitHub Actions Ubuntu runner
-- GitHub Actions CI: passed after the author-history correction for commit
-  `94c2f5c6e262d791b000ef51c207d39cdabd02b7`
-  (`Portable checks`, `Native checks and CLI`)
-- CI run: https://github.com/hanwentao-nuist/moondag/actions/runs/31861501226
+  installed; the GitHub Actions Ubuntu runner performs native verification
+- Submission Markdown strict validator: passed
+
+Warning `0079` is disabled because it originates in the pinned MoonFlowGraph
+0.3.0 source with the August 2026 compiler. `--deny-warn` still rejects every
+other warning class.
 
 ## Deliverables
 
-- MoonBit implementation and tests: root package and `cmd/main`
-- Examples: `examples/*.mdag` and expected CLI outputs
-- Documentation: README, scope, architecture, comparison, security,
-  contribution, third-party, AI disclosure, changelog
-- CI: `.github/workflows/ci.yml`
-- Submission draft: kept outside Git by default
+- MoonBit extension implementation and 20 tests: root package and `cmd/main`
+- Upstream boundary: `docs/UPSTREAM_RELATION.md` and `docs/COMPARISON.md`
+- Examples and expected CLI outputs: `examples/`
+- README, scope, architecture, security, contribution, third-party, AI usage,
+  changelog, and CI workflow
+- Submission Markdown: kept outside Git to avoid publishing personal data
